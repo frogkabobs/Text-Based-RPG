@@ -1,4 +1,4 @@
-package RPG;
+package rpg;
 
 public abstract class Item {
 String name;

@@ -1,4 +1,4 @@
-package RPG;
+package rpg;
 
 public class Light extends Item {
 	int radius;

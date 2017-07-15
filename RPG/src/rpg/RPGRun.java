@@ -1,4 +1,4 @@
-package RPG;
+package rpg;
 
 import java.applet.Applet;
 import java.awt.Color;
@@ -29,7 +29,6 @@ public class RPGRun extends Applet implements KeyListener, Runnable, MouseListen
 	public static final String TITLE = "RPG";
 	public static final Color BACKGROUND_COLOR = Color.black;
 	public static final Color FOREGROUND_COLOR = Color.white;
-	public static final int TICK = 50;
 	public static JFrame frame;
 	public static JPanel textInPanel;
 	public static JPanel textPanel;
@@ -210,6 +209,12 @@ public class RPGRun extends Applet implements KeyListener, Runnable, MouseListen
 					pause(b);
 				}
 				break;
+			case 5:
+				for(int i = 0; i < str.length(); i++) {
+					j.append(str.substring(i, i + 1));
+					if(i == 0 || !str.substring(i - 1, i + 1).equals("  ")) pause(b);
+				}
+				break;
 		}
 	}
 
@@ -227,14 +232,14 @@ public class RPGRun extends Applet implements KeyListener, Runnable, MouseListen
 		textIn.setForeground(FOREGROUND_COLOR);
 		textIn.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 20));
 		textIn.grabFocus();
-		label.setText(">>");
+		label.setText(" \u2328");
 	    label.setBackground(BACKGROUND_COLOR);
 	    label.setForeground(FOREGROUND_COLOR);
 	    label.setOpaque(true);
 	    label.setPreferredSize(new Dimension(35, 35));
 	    label.setMinimumSize(new Dimension(35, 35));
 	    label.setMaximumSize(new Dimension(35, 35));
-	    label.setFont(new Font("Monospaced", Font.PLAIN, 20));
+	    label.setFont(new Font("Cambria", Font.PLAIN, 20));
 	    layout.setVgap(0);
 	    textPanel.setLayout(layout);
 		textPanel.add(text);

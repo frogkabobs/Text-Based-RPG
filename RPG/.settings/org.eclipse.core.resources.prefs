@@ -1,2 +1,4 @@
 eclipse.preferences.version=1
-encoding//src/RPG/RPGRun.java=UTF-8
+encoding//src/rpg/Enemy.java=UTF-8
+encoding//src/rpg/Maze.java=UTF-8
+encoding//src/rpg/RPGRun.java=UTF-8

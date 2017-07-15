@@ -1,4 +1,4 @@
-package RPG;
+package rpg;
 
 import java.util.Collections;
 import java.util.StringJoiner;
@@ -24,7 +24,7 @@ public class Note extends Item {
 	}
 	@Override
 	public String toString() {
-		String tab = String.join("", Collections.nCopies(26, " "));
+		String tab = String.join("", Collections.nCopies((104 - width)/2, " "));
 		StringJoiner res = new StringJoiner("\n" + tab);
 		res.add("\n\n\n");
 		res.add(" " + String.join("", Collections.nCopies(width, "_")));

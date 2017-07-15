@@ -1,4 +1,4 @@
-package RPG;
+package rpg;
 
 public class SpecialItem extends Item {
 	String stats;
