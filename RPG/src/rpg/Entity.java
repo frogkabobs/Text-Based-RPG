@@ -9,16 +9,17 @@ public abstract class Entity {
 	public int maxMana;
 	public int mana;
 	public double maxStamina;
-	public double stamina; //vitality - boosts health, mana, stamina; supervitality - boosts full
+	public double stamina;
 	public double defense; //0 - 1
 	public double flatDefense;
 	public Weapon currWeapon;
-	public ArrayList<StatusEffect> statusEffects;
+	public ArrayList<StatusEffect> statusEffects = new ArrayList<StatusEffect>();;
 	
 	public void attack(Entity e) { //add slow multi hit display (maybe in enhancements?)
 		double dmg = currWeapon.baseDmg - currWeapon.range + Math.random()*currWeapon.range*(2 + stamina/maxStamina - e.stamina/e.maxStamina);
-		for(double[] c : currWeapon.criticals) if(Math.random() < c[0]) dmg *= StatusEffect.<Double, Double>affect(this, "critInverse", c[1]);
-		e.health -= Math.max(1, Math.round((1 - e.defense)*dmg - e.flatDefense));
+		if(!StatusEffect.hasEffect(e, "critNegate")) for(double[] c : currWeapon.criticals) if(Math.random() < c[0]) dmg *= StatusEffect.<Double, Double>affect(e, "critInverse", c[1]);
+		if(StatusEffect.hasEffect(e, "reflection")) health -= Math.max(1, Math.round((1 - defense)*dmg - flatDefense));
+		else e.health -= Math.max(1, Math.round((1 - e.defense)*dmg - e.flatDefense));
 	}
 	/* avg damage:
 		double dmg = baseDmg;

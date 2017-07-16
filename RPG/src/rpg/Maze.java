@@ -2,7 +2,9 @@ package rpg;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -59,6 +61,12 @@ public class Maze {
 		path = Arrays.copyOf(end.getUserObjectPath(), end.getLevel(), int[][].class);
 		interactives[startx][starty] = new Shop();
 		interactives[endx][endy] = new End();
+		generateInteractives();
+		for(int i = 0; i < interactives.length; i++) for(int j = 0; j < interactives[i].length; j++) if(interactives[i][j] instanceof Interactive) System.out.println(i + ", " + j);
+		System.out.println("chests");
+		for(int i = 0; i < interactives.length; i++) for(int j = 0; j < interactives[i].length; j++) if(interactives[i][j] instanceof Chest) System.out.println(i + ", " + j);
+		System.out.println("Enemies");
+		for(int i = 0; i < interactives.length; i++) for(int j = 0; j < interactives[i].length; j++) if(interactives[i][j] instanceof Enemy) System.out.println(i + ", " + j);
 	}
 	
 	public Maze(int a, int b, int c, int d, GameMode gm, String str, Player p) {
@@ -91,6 +99,7 @@ public class Maze {
 		path = Arrays.copyOf(end.getUserObjectPath(), end.getLevel(), int[][].class);
 		interactives[startx][starty] = new Shop();
 		interactives[endx][endy] = new End();
+		generateInteractives();
 	}
 
 	public String[] splitString() {
@@ -151,12 +160,16 @@ public class Maze {
 		enumNodes(tree, spots, (u, v) -> u.getChildCount() == 0 && u.getLevel() >= w*((DefaultMutableTreeNode) v.getRoot()).getDepth(), false);
 	}
 	
-	@SuppressWarnings("unchecked")
 	public static void enumNodes(DefaultMutableTreeNode tree, ArrayList<DefaultMutableTreeNode> spots, BiPredicate<DefaultMutableTreeNode, DefaultMutableTreeNode> p, boolean b) {
+		enumNodes(tree, t -> {spots.add(t);}, p, (u, v) -> u, b);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static void enumNodes(DefaultMutableTreeNode tree, Consumer<DefaultMutableTreeNode> function, BiPredicate<DefaultMutableTreeNode, DefaultMutableTreeNode> p, BiFunction<DefaultMutableTreeNode, DefaultMutableTreeNode, DefaultMutableTreeNode> nextTree, boolean b) {
 		for(Enumeration<DefaultMutableTreeNode> e = tree.children(); e.hasMoreElements();) {
 			DefaultMutableTreeNode node = e.nextElement();
-			if(p.test(node, tree)) spots.add(node);
-			if(b || !p.test(node, tree)) enumNodes(node, spots, p, b);
+			if(p.test(node, tree)) function.accept(node);
+			if(b || !p.test(node, tree)) enumNodes(nextTree.apply(node, tree), function, p,  nextTree, b);
 		}
 	}
 	
@@ -193,9 +206,10 @@ public class Maze {
 		return (v >= 0) && (v < upper);
 	}
 	
-	public void generateChests() {
+	public void generateInteractives() {
 		ArrayList<DefaultMutableTreeNode> endNodes = new ArrayList<DefaultMutableTreeNode>();
-		enumNodes(getTree(startx, starty), endNodes, (u, v) -> u.getChildCount() == 0 && (((int[])u.getUserObject())[0] != endx || ((int[])u.getUserObject())[0] != endy), false);
+		enumNodes(getTree(startx, starty), endNodes, (u, v) -> u.isLeaf() && (((int[])u.getUserObject())[0] != endx || ((int[])u.getUserObject())[0] != endy), false);
+		for(DefaultMutableTreeNode t : endNodes) System.out.println(Arrays.toString((int[])t.getUserObject()));
 		Collections.shuffle(endNodes);
 		int k = 0;
 		for(; k < (mode.min + Math.random()*.2)*endNodes.size(); k++) {
@@ -206,13 +220,15 @@ public class Maze {
 		}
 		int rest = endNodes.size() - k;
 		ArrayList<Pair<Enemy, double[]>> enemyProbs = Enemy.Enemies.EnemyTable(player, 1); //put boss at very end
-		ArrayList<Integer> count = new ArrayList<Integer>();	//do dzZAAaQAaungeons
+		ArrayList<Integer> count = new ArrayList<Integer>();	//do dungeons
+		System.out.println(player.chapter);
+		System.out.println(enemyProbs.size());
 		for(int m = 0; m < enemyProbs.size(); m++) {
 			count.add((int)(rest*enemyProbs.get(m).second[0]));
 			for(int n = 0; n < rest*enemyProbs.get(m).second[0]; n++) {
 				int i = ((int[])endNodes.get(k).getUserObject())[0];
 				int j = ((int[])endNodes.get(k).getUserObject())[1];
-				interactives[i][j] = enemyProbs.get(m).first;
+				interactives[i][j] = enemyProbs.get(m).first.clone();
 				k++;
 			}
 			if(count.get(m) >= rest*enemyProbs.get(m).second[1]) {
@@ -221,14 +237,61 @@ public class Maze {
 			}
 		}
 		for(; k < endNodes.size(); k++) {
+			if(enemyProbs.size() == 0) break;
 			int i = ((int[])endNodes.get(k).getUserObject())[0];
 			int j = ((int[])endNodes.get(k).getUserObject())[1];
 			int num = (int)(Math.random()*enemyProbs.size());
-			interactives[i][j] = enemyProbs.get(num).first;
+			interactives[i][j] = enemyProbs.get(num).first.clone();
 			count.set(num, count.get(num) + 1);
 			if(count.get(num) >= rest*enemyProbs.get(num).second[1]) {
 				count.remove(num);
 				enemyProbs.remove(num);
+			}
+		}
+		//make std enemies
+		ArrayList<Pair<Enemy, double[]>> stdEnemyProbs = Enemy.Enemies.EnemyTable(player, 2);
+		ArrayList<int[]> spots = new ArrayList<int[]>();
+		ArrayList<Integer> stdCount = new ArrayList<Integer>();
+		int[] nums = new int[1];
+		boolean[] newTree = new boolean[1];
+		enumNodes(getTree(startx, starty), t -> { //fix this so it actually works. make forks transfer distances
+			nums[0]++;
+			int i = ((int[])t.getUserObject())[0];
+			int j = ((int[])t.getUserObject())[1];
+			if(interactives[i][j] == null && nums[0] > 3 && Math.random() < 1d/8 - (nums[0])) {
+				spots.add((int[])t.getUserObject());
+				nums[0] = 0;
+				newTree[0] = true;
+			}
+			if(t.isLeaf()) nums[0] = 0;
+		}, (u, v) -> true, (u, v) -> {
+			if(newTree[0]) {
+				newTree[0] = false;
+				return getNode(((int[])u.getUserObject())[0], ((int[])v.getUserObject())[1], DIR.getDir((int[])u.getUserObject(), (int[])v.getUserObject()));
+			}
+			return u;
+		}, true);
+		Collections.shuffle(spots);
+		k = 0; //fix stdenemies
+		for(int m = 0; m < stdEnemyProbs.size(); m++) {
+			stdCount.add((int)(spots.size()*stdEnemyProbs.get(m).second[0]));
+			for(int n = 0; n < spots.size()*stdEnemyProbs.get(m).second[0]; n++) {
+				interactives[spots.get(k)[0]][spots.get(k)[1]] = stdEnemyProbs.get(m).first.clone();
+				k++;
+			}
+			if(stdCount.get(m) >= spots.size()*stdEnemyProbs.get(m).second[1]) {
+				stdCount.remove(m);
+				stdEnemyProbs.remove(m--);
+			}
+		}
+		for(; k < spots.size(); k++) {
+			if(enemyProbs.size() == 0) break;
+			int num = (int)(Math.random()*stdEnemyProbs.size());
+			interactives[spots.get(k)[0]][spots.get(k)[1]] = stdEnemyProbs.get(num).first.clone();
+			stdCount.set(num, stdCount.get(num) + 1);
+			if(stdCount.get(num) >= spots.size()*stdEnemyProbs.get(num).second[1]) {
+				stdCount.remove(num);
+				stdEnemyProbs.remove(num);
 			}
 		}
 	}
@@ -267,5 +330,23 @@ public class Maze {
 			}
 			return null;
 		}
-	}; 
+		
+		public static DIR getDir(int[] a, int[] b) {
+			switch(b[0] - a[0]) {
+				case 0:
+					switch(b[1] - a[1]) {
+						case 1:
+							return S;
+						case -1:
+							return N;
+					}
+					break;
+				case 1:
+					return E;
+				case -1:
+					return W;
+			}
+			return null;
+		}
+	}
 }

@@ -17,7 +17,9 @@ public class Player extends Entity implements Serializable {
 	public Player() {
 		inventory = new Inventory();
 		currWeapon = Weapon.Weapons.fist;
-		health = 20;
+		health = maxHealth = 20;
+		stamina = maxStamina = 20;
+		mana = maxMana = 20;
 		defense = 0;
 		flatDefense = 0;
 		chapter = -1;

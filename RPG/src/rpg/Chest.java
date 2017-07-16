@@ -14,18 +14,20 @@ public class Chest implements Interactive {
 		for(Probability<Item> ip : i) if(ip.execute()) loot.add(ip.item);
 	}
 	
-	@SuppressWarnings("unchecked")
 	public Chest(int gMin, int gMax, int xpMin, int xpMax, Player p) {
-		this(gMin, gMax, xpMin, xpMax, LootTable(p).toArray((Probability<Item>[]) new Object[LootTable(p).size()]));
+		gold = gMin + (int) (Math.random()*(gMax - gMin + 1));
+		xp = xpMin + (int) (Math.random()*(xpMax - xpMin + 1));
+		for(Probability<Item> ip : lootTable(p)) if(ip.execute()) loot.add(ip.item);
 	}
 	
-	public static ArrayList<Probability<Item>> LootTable(Player player) { //todo
+	public static ArrayList<Probability<Item>> lootTable(Player player) { //todo
 		ArrayList<Probability<Item>> itemProbs = new ArrayList<Probability<Item>>();
 		switch(player.chapter) {
 			
 		}
 		return itemProbs;
 	}
+	@SuppressWarnings("static-access")
 	@Override
 	public void interact(RPGRun r) { //make this immediately display chest contents
 		r.text.setText("You've found a chest\n\tPress 'o' to open the chest");
@@ -35,5 +37,11 @@ public class Chest implements Interactive {
 		while(!r.story.returnText.isEmpty()) {
 			
 		}
+	}
+
+	@Override
+	public String getKey() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

@@ -61,10 +61,12 @@ public class Story {
 					}
 					userWait();
 				}
-				r.player.level = new Maze(20, 10, GameMode.values()[option], "+ ", r.player);
 				r.resetText();
+				System.out.println("debug1");
 				if(!yn) {
+					System.out.println("debug2");
 					r.player.chapter += 2;
+					r.player.level = new Maze(20, 10, GameMode.values()[option], "+ ", r.player);
 					break;
 				}
 				r.player.chapter++;
