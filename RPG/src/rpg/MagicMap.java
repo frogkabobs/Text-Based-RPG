@@ -12,7 +12,6 @@ public class MagicMap extends Item implements Interactive {
 		return maze.torchString();
 	}
 	
-	@SuppressWarnings("static-access")
 	public void interact(RPGRun r) {
 		while(!r.story.returnText.isEmpty()) {
 			int val = maze.getMoveMaze()[r.player.x][r.player.y];
@@ -74,7 +73,11 @@ public class MagicMap extends Item implements Interactive {
 					break;
 			} //what's wrong here?
 			if(r.player.xDisp == 2 && r.player.yDisp == 0 && r.player.level.interactives[r.player.x][r.player.y] != null
-					&& r.player.level.interactives[r.player.x][r.player.y].getKey() == null) r.player.level.interactives[r.player.x][r.player.y].interact(r);
+			&& r.player.level.interactives[r.player.x][r.player.y].getKey() == null) {
+				r.player.level.interactives[r.player.x][r.player.y].interact(r);
+				if(r.player.level.interactives[r.player.x][r.player.y].disappear())
+				r.player.level.interactives[r.player.x][r.player.y] = null;
+			}
 			r.story.itemAccess(this);
 			r.story.userWait();
 		}
@@ -84,5 +87,11 @@ public class MagicMap extends Item implements Interactive {
 	public String getKey() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public boolean disappear() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

@@ -1,12 +1,13 @@
 package rpg;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.function.BiConsumer;
 
 public class Enemy extends Entity implements Interactive {
-	public Weapon[][] attacks;
+	public Weapon[][] attacks; //make this an arraylist 
 	public BiConsumer<RPGRun, Enemy> fight;
-	public Probability<Item>[] drops;
+	public ArrayList<Probability<Item>> drops; //change to pairof item and max drops
 	
 	@SafeVarargs
 	public Enemy(String str, int hp, int m, double s, double def, double flatDef, Weapon[][] atk, BiConsumer<RPGRun, Enemy> c, Probability<Item>... d) {
@@ -18,12 +19,12 @@ public class Enemy extends Entity implements Interactive {
 		flatDefense = flatDef;
 		attacks = atk;
 		fight = c;
-		drops = d;
+		drops = new ArrayList<Probability<Item>>(Arrays.asList(d));
 	}
 	
-	@SuppressWarnings("unchecked") //change this
 	public Enemy(String str, int hp, int m, double s, double def, double flatDef, Weapon[][] atk, BiConsumer<RPGRun, Enemy> c, ArrayList<Probability<Item>> d) {
-		this(str, hp, m, s, def, flatDef, atk, c, d.toArray((Probability<Item>[]) new Object[d.size()]));
+		this(str, hp, m, s, def, flatDef, atk, c);
+		drops = d;
 	}
 	@Override
 	public void interact(RPGRun r) {
@@ -50,14 +51,14 @@ public class Enemy extends Entity implements Interactive {
 								break;
 						}
 					}
-					if(e.health < 0) break; //do enemy kill here
+					if(e.health <= 0) break; 
 					Weapon w = e.attacks[0][(int)(Math.random()*2)];
 					r.text.setText(String.format(w.message, "The rat", "you"));
 					e.currWeapon = w;
 					e.attack(r.player);
 					r.pause(1500);
 					r.text.setText(e.getFightText(r));
-				}
+				}//do enemy kill here
 			}, new Probability<Item>(new SpecialItem("Rat Tail", "\nNotes:\n\t- Crafting item for the rat whip"), .5),
 			new Probability<Item>(new SpecialItem("Rat Tail", ""), .5), new Probability<Item>(new SpecialItem("Rat Tooth", "\nNotes:\n\t- Crafting item for the rat whip"), 1d/6));
 		
@@ -76,7 +77,7 @@ public class Enemy extends Entity implements Interactive {
 								break;
 						}
 					}
-					if(e.health < 0) break; 
+					if(e.health <= 0) break; 
 					Weapon w = e.attacks[0][(int)(Math.random()*2)];
 					r.text.setText(String.format(w.message, "The mutated rat", "you"));
 					e.currWeapon = w;
@@ -116,5 +117,11 @@ public class Enemy extends Entity implements Interactive {
 	public String getKey() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public boolean disappear() {
+		// TODO Auto-generated method stub
+		return health <= 0;
 	}
 }

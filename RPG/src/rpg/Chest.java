@@ -30,18 +30,22 @@ public class Chest implements Interactive {
 	@SuppressWarnings("static-access")
 	@Override
 	public void interact(RPGRun r) { //make this immediately display chest contents
-		r.text.setText("You've found a chest\n\tPress 'o' to open the chest");
+		r.text.setText("You've found a chest\n\n\n\tGold: " + gold + "\n\n\tXp: " + xp);
+		r.player.gold += gold;
+		r.player.xp += xp;
+		r.pause(1500);
 		r.story.userWait();
-		while(!r.story.returnText.equalsIgnoreCase("o")) r.story.userWait();
-		
-		while(!r.story.returnText.isEmpty()) {
-			
-		}
 	}
 
 	@Override
 	public String getKey() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public boolean disappear() {
+		// TODO Auto-generated method stub
+		return true;
 	}
 }

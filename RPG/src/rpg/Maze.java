@@ -177,6 +177,10 @@ public class Maze {
 		return a[((int[]) tree.getUserObject())[0]][((int[]) tree.getUserObject())[1]];
 	}
 	
+	public static <T> T getNodeValue(DefaultMutableTreeNode tree, T[][] a) {
+		return a[((int[]) tree.getUserObject())[0]][((int[]) tree.getUserObject())[1]];
+	}
+	
 	public DefaultMutableTreeNode getTree(int a, int b) {
 		return getNode(a, b, null);
 	}
@@ -249,49 +253,46 @@ public class Maze {
 			}
 		}
 		//make std enemies
-		ArrayList<Pair<Enemy, double[]>> stdEnemyProbs = Enemy.Enemies.EnemyTable(player, 2);
+		enemyProbs = Enemy.Enemies.EnemyTable(player, 2);
 		ArrayList<int[]> spots = new ArrayList<int[]>();
-		ArrayList<Integer> stdCount = new ArrayList<Integer>();
-		int[] nums = new int[1];
-		boolean[] newTree = new boolean[1];
-		enumNodes(getTree(startx, starty), t -> { //fix this so it actually works. make forks transfer distances
-			nums[0]++;
-			int i = ((int[])t.getUserObject())[0];
-			int j = ((int[])t.getUserObject())[1];
-			if(interactives[i][j] == null && nums[0] > 3 && Math.random() < 1d/8 - (nums[0])) {
-				spots.add((int[])t.getUserObject());
-				nums[0] = 0;
-				newTree[0] = true;
+		count = new ArrayList<Integer>();
+		ArrayList<int[]> blacklist = new ArrayList<int[]>();
+		ArrayList<int[]> possibleSpots = new ArrayList<int[]>();
+		enumNodes(getTree(startx, starty), t -> {blacklist.add((int[])t.getUserObject());}, (u, v) -> u.getLevel() < 5, (u, v) -> u, false);
+		for(int i = 0; i < interactives.length*interactives[0].length; i++) {
+			boolean bool = interactives[i % interactives.length][i/interactives.length] == null;
+			for(int[] j : blacklist) bool &= !Arrays.equals(j, new int[]{i % interactives.length, i/interactives.length});
+			if(bool) possibleSpots.add(new int[]{i % interactives.length, i/interactives.length});
+		}
+		int distance = (int)(Math.random()*8);
+		for(int[] i : possibleSpots) {
+			distance++;
+			if(distance > 3 && Math.random() < 1d/distance) {
+				spots.add(i);
+				distance = 0;
 			}
-			if(t.isLeaf()) nums[0] = 0;
-		}, (u, v) -> true, (u, v) -> {
-			if(newTree[0]) {
-				newTree[0] = false;
-				return getNode(((int[])u.getUserObject())[0], ((int[])v.getUserObject())[1], DIR.getDir((int[])u.getUserObject(), (int[])v.getUserObject()));
-			}
-			return u;
-		}, true);
+		}
 		Collections.shuffle(spots);
 		k = 0; //fix stdenemies
-		for(int m = 0; m < stdEnemyProbs.size(); m++) {
-			stdCount.add((int)(spots.size()*stdEnemyProbs.get(m).second[0]));
-			for(int n = 0; n < spots.size()*stdEnemyProbs.get(m).second[0]; n++) {
-				interactives[spots.get(k)[0]][spots.get(k)[1]] = stdEnemyProbs.get(m).first.clone();
+		for(int m = 0; m < enemyProbs.size(); m++) {
+			count.add((int)(spots.size()*enemyProbs.get(m).second[0]));
+			for(int n = 0; n < spots.size()*enemyProbs.get(m).second[0]; n++) {
+				interactives[spots.get(k)[0]][spots.get(k)[1]] = enemyProbs.get(m).first.clone();
 				k++;
 			}
-			if(stdCount.get(m) >= spots.size()*stdEnemyProbs.get(m).second[1]) {
-				stdCount.remove(m);
-				stdEnemyProbs.remove(m--);
+			if(count.get(m) >= spots.size()*enemyProbs.get(m).second[1]) {
+				count.remove(m);
+				enemyProbs.remove(m--);
 			}
 		}
 		for(; k < spots.size(); k++) {
 			if(enemyProbs.size() == 0) break;
-			int num = (int)(Math.random()*stdEnemyProbs.size());
-			interactives[spots.get(k)[0]][spots.get(k)[1]] = stdEnemyProbs.get(num).first.clone();
-			stdCount.set(num, stdCount.get(num) + 1);
-			if(stdCount.get(num) >= spots.size()*stdEnemyProbs.get(num).second[1]) {
-				stdCount.remove(num);
-				stdEnemyProbs.remove(num);
+			int num = (int)(Math.random()*enemyProbs.size());
+			interactives[spots.get(k)[0]][spots.get(k)[1]] = enemyProbs.get(num).first.clone();
+			count.set(num, count.get(num) + 1);
+			if(count.get(num) >= spots.size()*enemyProbs.get(num).second[1]) {
+				count.remove(num);
+				enemyProbs.remove(num);
 			}
 		}
 	}

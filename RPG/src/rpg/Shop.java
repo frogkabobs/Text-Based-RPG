@@ -18,4 +18,10 @@ public class Shop implements Interactive {
 		return "i";
 	}
 
+	@Override
+	public boolean disappear() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }

@@ -5,6 +5,8 @@ import java.io.Serializable;
 public class Player extends Entity implements Serializable {
 	private static final long serialVersionUID = 1L;
 	public boolean retarded;
+	public int gold;
+	public int xp;
 	public int x;
 	public int y;
 	public int xDisp; //0 - 1
